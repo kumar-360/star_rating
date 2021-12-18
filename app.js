@@ -1,65 +1,54 @@
-function Star(el, count, callback) {
-    const starDiv = document.querySelector('#star');
-    const displayStar = document.querySelector('#display-star');
-    const starElements = document.querySelectorAll('#star i');
-    starElements.forEach((ele, index) => {
-        ele.setAttribute('value', index);
-    })
-    const addMouseEnter = (e) => {
-        let value = Number(e.target.getAttribute('value'));
-        starElements.forEach((ele, index) => {
-            if (index <= value) {
-                ele.classList.remove('fa-star-o');
-                ele.classList.add('fa-star');
-            }
-
-        })
-    };
-    starElements.forEach((ele) => {
-        ele.addEventListener('mouseenter', addMouseEnter);
-    });
-    const normaliseStars = (e) => {
-        starElements.forEach(ele => {
-            ele.classList.remove('fa-star');
-            ele.classList.add('fa-star-o');
-        })
+class Star {
+    constructor(el, count, callback) {
+        this.element = document.querySelector(el);
+        this.count = count;
+        this.callback = callback;
+        this.active = -1;
+        this.init();
+        this.bindEvents();
     }
-    const addClick = (e) => {
-        let value = Number(e.target.getAttribute('value'));
-        getStar(value + 1);
-        starElements.forEach((ele, index) => {
-            if (index <= value) {
-                ele.classList.remove('fa-star-o');
-                ele.classList.add('fa-star');
-            }
-        })
-        starElements.forEach(ele => {
-            ele.removeEventListener('mouseenter', addMouseEnter);
-            ele.removeEventListener('mouseleave', addMouseLeave);
-            ele.removeEventListener('click', addClick);
-        });
-        starDiv.removeEventListener('mouseleave', normaliseStars);
+    init() {
+        const fragment = document.createDocumentFragment();
+        for (let i = 1; i <= this.count; i++) {
+            const iElem = document.createElement("i");
+            iElem.classList.add("fa");
+            iElem.classList.add("fa-star-o");
+            iElem.dataset.ratingVal = i;
+            fragment.appendChild(iElem);
+        }
+        this.element.appendChild(fragment);
     }
-    starElements.forEach(ele => {
-        ele.addEventListener('click', addClick);
-    });
-    const addMouseLeave = (e) => {
-        let value = Number(e.target.getAttribute('value'));
-        starElements.forEach((ele, index) => {
-            if (index >= value) {
-                ele.classList.remove('fa-star');
-                ele.classList.add('fa-star-o');
+    onMouseOver(e) {
+        const ratingVal = e.target.dataset.ratingVal;
+        if (!ratingVal) {
+            return;
+        }
+        this.fill(ratingVal);
+    }
+    fill(ratingVal) {
+        for (let i = 0; i < this.count; i++) {
+            if (i < ratingVal) {
+                this.element.children[i].classList.add("fa-star");
+            } else {
+                this.element.children[i].classList.remove("fa-star");
             }
-
-        })
-    };
-    starElements.forEach(ele => {
-        ele.addEventListener('mouseleave', addMouseLeave);
-    });
-    starDiv.addEventListener('mouseleave', normaliseStars);
+        }
+    }
+    onMouseLeave(e) {
+        this.fill(this.active);
+    }
+    onClick(e) {
+        this.active = e.target.dataset.ratingVal;
+        this.fill(this.active);
+        this.callback(this.active);
+    }
+    bindEvents() {
+        this.element.addEventListener("mouseover", this.onMouseOver.bind(this));
+        this.element.addEventListener("click", this.onClick.bind(this));
+        this.element.addEventListener("mouseleave", this.onMouseLeave.bind(this));
+    }
 }
-
 function getStar(value) {
-    document.getElementById("display-star").innerHTML = value;
+    document.getElementById('display-star-value').innerHTML = value;
 }
-Star("#star", 5, getStar);
+new Star("#star", 5, getStar);
